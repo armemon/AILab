@@ -87,7 +87,7 @@ UUIDs = {
     'Litecoin (LTC)': 'D7B1x_ks7WhV5',
     'Stellar (XLM)': 'f3iaFeCKEmkaZ'
 }
-st.write('You selected:', option, "with UUID", UUIDs[option])
+st.write('You selected:', option, "with UUID:", UUIDs[option])
 
 # Qwsogvtv82FCd
 # razxDUgYGNAdQ
