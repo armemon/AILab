@@ -6,36 +6,36 @@ import streamlit as st
 
 # 25 free request of ChatGPT
 
-def BasicGeneration(userPrompt):
-    url = "https://simple-chatgpt-api.p.rapidapi.com/ask"
-
-    payload = {"question": userPrompt}
-    headers = {
-        "content-type": "application/json",
-        "X-RapidAPI-Key": "4234a1b884msh65b86b953831e97p186275jsn3e034269ba5f",
-        "X-RapidAPI-Host": "simple-chatgpt-api.p.rapidapi.com"
-    }
-
-    response = requests.request("POST", url, json=payload, headers=headers)
-
-    return json.loads(response.text)['answer']
-
-
-# Free liftime but limited words
-
 # def BasicGeneration(userPrompt):
-#     url = "https://chatgpt-api7.p.rapidapi.com/ask"
+#     url = "https://simple-chatgpt-api.p.rapidapi.com/ask"
 
-#     payload = {"query": userPrompt}
+#     payload = {"question": userPrompt}
 #     headers = {
 #         "content-type": "application/json",
 #         "X-RapidAPI-Key": "4234a1b884msh65b86b953831e97p186275jsn3e034269ba5f",
-#         "X-RapidAPI-Host": "chatgpt-api7.p.rapidapi.com"
+#         "X-RapidAPI-Host": "simple-chatgpt-api.p.rapidapi.com"
 #     }
 
 #     response = requests.request("POST", url, json=payload, headers=headers)
 
-#     return json.loads(response.text)['response']
+#     return json.loads(response.text)['answer']
+
+
+# Free liftime but limited words
+
+def BasicGeneration(userPrompt):
+    url = "https://chatgpt-api7.p.rapidapi.com/ask"
+
+    payload = {"query": userPrompt}
+    headers = {
+        "content-type": "application/json",
+        "X-RapidAPI-Key": "4234a1b884msh65b86b953831e97p186275jsn3e034269ba5f",
+        "X-RapidAPI-Host": "chatgpt-api7.p.rapidapi.com"
+    }
+
+    response = requests.request("POST", url, json=payload, headers=headers)
+
+    return json.loads(response.text)['response']
 
 
 def GetCoinPrices(UUID):
@@ -63,17 +63,20 @@ def GetCoinPrices(UUID):
     # Return the comma-separated string of prices
     return pricesList
 
+def SearchCoin(searchCoin):
+    url = "https://coinranking1.p.rapidapi.com/search-suggestions"
 
+    querystring = {"referenceCurrencyUuid":"yhjMzLPhuIDl","query": searchCoin}
 
-st.title('CryptoCurrency Analyzer With ChatGPT')
-st.subheader('Made by Abdul Rahman Memon')
+    headers = {
+        "X-RapidAPI-Key": "4234a1b884msh65b86b953831e97p186275jsn3e034269ba5f",
+        "X-RapidAPI-Host": "coinranking1.p.rapidapi.com"
+    }
 
+    response = requests.request("GET", url, headers=headers, params=querystring)
 
-option = st.selectbox(
-     'Which coin you want to Analyze',
-     ('Bitcoin (BTC)', 'Ethereum (ETH)', 'Binance Coin (BNB)', 'Dogecoin (DOGE)', 'XRP (XRP)', 'Cardano (ADA)', 'Polkadot (DOT)', 'Chainlink (LINK)', 'Litecoin (LTC)', 'Stellar (XLM)'))
-
-
+    coin = json.loads(response.text)["data"]["coins"]
+    return coin
 
 UUIDs = {
     'Bitcoin (BTC)': 'Qwsogvtv82FCd',
@@ -85,9 +88,37 @@ UUIDs = {
     'Polkadot (DOT)': '25W7FG7om',
     'Chainlink (LINK)': 'VLqpJwogdhHNb',
     'Litecoin (LTC)': 'D7B1x_ks7WhV5',
-    'Stellar (XLM)': 'f3iaFeCKEmkaZ'
+    'Stellar (XLM)': 'f3iaFeCKEmkaZ',
 }
-st.write('You selected:', option, "with UUID:", UUIDs[option])
+
+st.title('CryptoCurrency Analyzer With ChatGPT')
+st.subheader('Made by Abdul Rahman Memon')
+
+
+option = st.selectbox(
+    'Which coin you want to Analyze',
+    ('Bitcoin (BTC)', 'Ethereum (ETH)', 'Binance Coin (BNB)', 'Dogecoin (DOGE)', 
+    'XRP (XRP)', 'Cardano (ADA)', 'Polkadot (DOT)', 'Chainlink (LINK)', 'Litecoin (LTC)', 
+    'Stellar (XLM)', "Other"))
+if option == "Other":
+    other_text = st.text_input("Please specify", "")
+    try:
+        coin= SearchCoin(other_text)
+        option= coin[0]["name"]
+        uuid= coin[0]["uuid"]
+        st.write('You selected:', option, "with UUID:", uuid)
+    except:
+        st.write("No coin available, try another")
+else:
+    uuid= UUIDs[option]
+    st.write('You selected:', option, "with UUID:", uuid)
+
+
+
+
+
+
+
 
 # Qwsogvtv82FCd
 # razxDUgYGNAdQ
@@ -103,8 +134,8 @@ st.write('You selected:', option, "with UUID:", UUIDs[option])
 
 if st.button('Analyze'):
     with st.spinner(f'Getting {option} Prices...'):
-        coinPrices = GetCoinPrices(UUIDs[option])
-        st.success('Done!')
+        coinPrices = GetCoinPrices(uuid)
+        st.success(f'Got {option} Prices!')
     with st.spinner(f'Analyzing {option} Prices...'):
         chatGPTPrompt = f"""You are an expert crypto trader with more than 10 years of experience, 
                     I will provide you with a list of {option} prices for the last 7 days
@@ -122,4 +153,4 @@ if st.button('Analyze'):
         analysis = BasicGeneration(chatGPTPrompt)
         st.text_area("Analysis", analysis,
                      height=500)
-        st.success('Done!')
+        st.info('Have a Good Day!')
